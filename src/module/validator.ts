@@ -8,6 +8,7 @@ export default class ValidateMessage {
         else if(this.isNewMemberCmd(msg)) return 'new_member_cmd';
         else if(this.isTeamListCmd(msg)) return 'team_list_cmd';
         else if(this.isReportCmd(msg)) return 'post_report_cmd';
+        else if(this.isReportOnCmd(msg)) return 'report_on_cmd';
         else return 'do_nothing';
     }
 
@@ -54,7 +55,7 @@ export default class ValidateMessage {
     
     isReportCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
-            if(msg.text.toLowerCase().search('#report') === 0) {
+            if(msg.text.toLowerCase().slice(0, 7) === '#report') {
                 return true;
             }
             else {
@@ -69,6 +70,20 @@ export default class ValidateMessage {
     isNewMemberCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
             if(msg.text.toLowerCase() === '#newmember') {
+                return true;
+            }
+            else {
+                return false
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isReportOnCmd(msg: Message): boolean {
+        if(this.isTextMessage(msg)) {
+            if(msg.text.toLowerCase() === '#setallarm') {
                 return true;
             }
             else {
