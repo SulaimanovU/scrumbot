@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from "typeorm";
 import { Member, Report } from "./entities";
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export default class DataSourceConnect {
     private static initDataSource: DataSource | undefined = undefined;
@@ -11,6 +12,7 @@ export default class DataSourceConnect {
         password: "QULh8YIL6kW6EdJir2ouqk36QNE8EdKw",
         database: "gyzxxvsr",
         entities: [Member, Report],
+        namingStrategy: new SnakeNamingStrategy(),
         synchronize: true
     }
     

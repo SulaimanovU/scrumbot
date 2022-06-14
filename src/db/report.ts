@@ -9,6 +9,9 @@ export class Report {
     @Column()
     report: string
 
+    @Column({type: 'timestamp'})
+    created_at: Date;
+
     @ManyToOne(() => Member, (member) => member.reports)
     member: Member
 }

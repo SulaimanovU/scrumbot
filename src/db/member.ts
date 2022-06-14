@@ -21,6 +21,9 @@ export class Member {
     @Column()
     position: string
 
+    @Column({type: 'timestamp'})
+    created_at: Date;
+
     @OneToMany(() => Report, (report) => report.member)
     reports: Report[]
 }
