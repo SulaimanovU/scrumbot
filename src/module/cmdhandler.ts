@@ -35,19 +35,49 @@ export default class CommandHandler {
         })
 
         if(member === null) {
-            await this.manager.create(Member, {
+            let member = this.manager.create(Member, {
                 member_id: member_id,
                 group_id: group_id,
                 name: first_name,
                 username: username,
                 position: 'not defined'
             })
+
+            await this.manager.save(member);
         }
 
         await this.bot.sendMessage(group_id, 'Status: New member saved!')
     }
 
-    async post_report(msg: Message) {
+    async new_member_cmd(msg: Message) {
+        const { from: {id: member_id, first_name, username} } = msg;
+        const { chat: { id: group_id } } = msg;
+
+
+        const member = await this.manager.findOne(Member, {
+            where: {
+                member_id: member_id,
+                group_id: group_id
+            }
+        })
+
+        if(member === null) {
+            let member = this.manager.create(Member, {
+                member_id: member_id,
+                group_id: group_id,
+                name: first_name,
+                username: username,
+                position: 'not defined'
+            })
+
+            await this.manager.save(member);
+            
+        }
+
+        await this.bot.sendMessage(group_id, 'Status: New member saved!')
+    }
+
+    async post_report_cmd(msg: Message) {
         const { from: { id: member_id }, chat: { id: group_id }, text } = msg;
 
         let member = await this.manager.findOne(Member, {
@@ -57,15 +87,17 @@ export default class CommandHandler {
             }
         });
 
-        this.manager.create(Report, {
+        let report = this.manager.create(Report, {
             report: text,
             member: member
         })
+
+        await this.manager.save(report);
             
         await this.bot.sendMessage(group_id, 'Status: Report saved!')
     }
 
-    async team_list(msg: Message) {
+    async team_list_cmd(msg: Message) {
         const { chat: { id: group_id } } = msg;
 
         const members = await this.manager.find(Member)
@@ -82,6 +114,9 @@ export default class CommandHandler {
         }
     }
 
+    do_nothing() {
+        console.log('did nothing')
+    }
 
 
 }

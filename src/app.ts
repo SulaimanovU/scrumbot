@@ -15,7 +15,8 @@ async function bootstrap() {
     let cmdHandler = new CommandHandler(bot, dataSource);
 
     bot.on('message', async (msg) => {
-        cmdHandler.start(msg)
+        console.log('msg ->', msg);
+        cmdHandler.start(msg);
     });
 }
 

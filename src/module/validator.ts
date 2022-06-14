@@ -5,8 +5,9 @@ export default class ValidateMessage {
     validate(msg: Message): string {
         if(this.isNewMember(msg)) return 'new_member';
         else if(this.isLeaveMember(msg)) return 'leave_member';
-        else if(this.isTeamList(msg)) return 'team_list';
-        else if(this.isReport(msg)) return 'post_report';
+        else if(this.isNewMemberCmd(msg)) return 'new_member_cmd';
+        else if(this.isTeamListCmd(msg)) return 'team_list_cmd';
+        else if(this.isReportCmd(msg)) return 'post_report_cmd';
         else return 'do_nothing';
     }
 
@@ -37,7 +38,7 @@ export default class ValidateMessage {
         }
     }
     
-    isTeamList(msg: Message): boolean {
+    isTeamListCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
             if(msg.text.toLowerCase() === '#teamlist') {
                 return true;
@@ -51,9 +52,23 @@ export default class ValidateMessage {
         }
     }
     
-    isReport(msg: Message): boolean {
+    isReportCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
             if(msg.text.toLowerCase().search('#report') === 0) {
+                return true;
+            }
+            else {
+                return false
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isNewMemberCmd(msg: Message): boolean {
+        if(this.isTextMessage(msg)) {
+            if(msg.text.toLowerCase() === '#newmember') {
                 return true;
             }
             else {

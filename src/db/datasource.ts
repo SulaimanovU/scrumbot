@@ -11,6 +11,7 @@ export default class DataSourceConnect {
         password: "QULh8YIL6kW6EdJir2ouqk36QNE8EdKw",
         database: "gyzxxvsr",
         entities: [Member, Report],
+        synchronize: true
     }
     
     static async connect() {
