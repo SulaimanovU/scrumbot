@@ -52,7 +52,7 @@ export default class Chronos {
         return this.calcTimerWithArguments(this.time);
     }
 
-    static getTime(): string {
+    static getDbTime(): string {
         const date = new Date();
         const hour = date.getUTCHours() + 6;
         const min = date.getUTCMinutes();
@@ -61,13 +61,36 @@ export default class Chronos {
         return `${hour}:${min}:${sec}`;
     }
 
-    static getDate(): string {
+    static getDbDate(): string {
         const date = new Date();
         return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
     }
 
+    static getPrevDbDate(): string {
+        const date = this.getPreviousDay();
+        return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`;
+    }
+
+    static getPreviousDay(date = new Date()) {
+        const previous = new Date(date.getTime());
+        previous.setDate(date.getDate() - 1);
+      
+        return previous;
+    }
+
+    static initDate(): Date {
+        const date = new Date();
+        const hour = date.getUTCHours() + 6;
+        const min = date.getUTCMinutes();
+        const sec = date.getSeconds();
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+        return new Date(year, month, day, hour, min, sec);
+    }
+
     static getTimeStamp(): string {
-        return `${this.getDate()} ${this.getTime()}`;
+        return `${this.getDbDate()} ${this.getDbTime()}`;
     }
 
     async startLoop(callback, args) {
