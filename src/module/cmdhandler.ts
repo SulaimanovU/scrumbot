@@ -34,43 +34,47 @@ export default class CommandHandler {
     async new_member_event(msg: Message) {
         const { id: member_id, first_name, username } = msg.new_chat_members[0];
         const { chat: { id: group_id } } = msg;
-
-        const group = await this.manager.findOne(GroupTg, {
-            where: {
-                group_id: group_id
-            }
-        })
-
-        if(group === null) {
-            await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
-            return false;
-        }
-
-        const member = await this.manager.findOne(Member, {
-            where: {
-                member_id: member_id
-            }
-        })
-
-        if(member === null) {
-            let member = this.manager.create(Member, {
-                member_id: member_id,
-                group_tg: group,
-                name: first_name,
-                username: username,
-                position: 'not defined',
-                created_at: this.cronDate.getKgDate()
+        try {
+            const group = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
             })
 
-            await this.manager.save(member);
-        }
-        else {
-            await this.bot.sendMessage(group_id, 'Status: Member already exist!')
+            if(group === null) {
+                await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+                return false;
+            }
+
+            const member = await this.manager.findOne(Member, {
+                where: {
+                    member_id: member_id
+                }
+            })
+
+            if(member === null) {
+                let member = this.manager.create(Member, {
+                    member_id: member_id,
+                    group_tg: group,
+                    name: first_name,
+                    username: username,
+                    position: 'not defined',
+                    created_at: this.cronDate.getKgDate()
+                })
+
+                await this.manager.save(member);
+            }
+            else {
+                await this.bot.sendMessage(group_id, 'Status: Member already exist!')
+                return false;
+            }
+
+            await this.bot.sendMessage(group_id, 'Status: New member saved!')
+            return true;
+        } catch (error) {
+            await this.bot.sendMessage(group_id, 'Status: Error!')
             return false;
         }
-
-        await this.bot.sendMessage(group_id, 'Status: New member saved!')
-        return true;
     }
 
     async leave_member_event(msg: Message) {
@@ -81,93 +85,110 @@ export default class CommandHandler {
         const { from: {id: member_id, first_name, username} } = msg;
         const { chat: { id: group_id } } = msg;
 
-        const group = await this.manager.findOne(GroupTg, {
-            where: {
-                group_id: group_id
-            }
-        })
-
-        if(group === null) {
-            await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
-            return false;
-        }
-
-        const member = await this.manager.findOne(Member, {
-            where: {
-                member_id: member_id
-            }
-        })
-
-        if(member === null) {
-            let member = this.manager.create(Member, {
-                member_id: member_id,
-                group_tg: group,
-                name: first_name,
-                username: username,
-                position: 'not defined',
-                created_at: this.cronDate.getKgDate()
+        try {
+            const group = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
             })
 
-            await this.manager.save(member);
-        }
-        else {
-            await this.bot.sendMessage(group_id, 'Status: Member already exist!')
+            if(group === null) {
+                await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+                return false;
+            }
+
+            const member = await this.manager.findOne(Member, {
+                where: {
+                    member_id: member_id
+                }
+            })
+
+            if(member === null) {
+                let member = this.manager.create(Member, {
+                    member_id: member_id,
+                    group_tg: group,
+                    name: first_name,
+                    username: username,
+                    position: 'not defined',
+                    created_at: this.cronDate.getKgDate()
+                })
+
+                await this.manager.save(member);
+            }
+            else {
+                await this.bot.sendMessage(group_id, 'Status: Member already exist!')
+                return false;
+            }
+
+            await this.bot.sendMessage(group_id, 'Status: New member saved!')
+            return true;
+        } catch (error) {
+            await this.bot.sendMessage(group_id, 'Status: Error!')
             return false;
         }
-
-        await this.bot.sendMessage(group_id, 'Status: New member saved!')
-        return true;
     }
 
     async post_report_cmd(msg: Message) {
         const { from: { id: member_id }, chat: { id: group_id }, text } = msg;
 
-        let member = await this.manager.findOne(Member, {
-            where: {
-                member_id: member_id
+        try {
+            let member = await this.manager.findOne(Member, {
+                where: {
+                    member_id: member_id
+                }
+            });
+    
+            if(member === null) {
+                await this.bot.sendMessage(group_id, 'Status: You are not registered!');
+                return false;
             }
-        });
-
-        if(member === null) {
-            await this.bot.sendMessage(group_id, 'Status: You are not registered!');
+            
+            let report = this.manager.create(Report, {
+                report: text,
+                created_at: this.cronDate.getKgDate(),
+                member: member
+            })
+    
+            await this.manager.save(report);
+                
+            await this.bot.sendMessage(group_id, 'Status: Report saved!')
+    
+            return true;
+        } catch (error) {
+            await this.bot.sendMessage(group_id, 'Status: Error!')
             return false;
         }
         
-        let report = this.manager.create(Report, {
-            report: text,
-            created_at: this.cronDate.getKgDate(),
-            member: member
-        })
-
-        await this.manager.save(report);
-            
-        await this.bot.sendMessage(group_id, 'Status: Report saved!')
-
-        return true;
     }
 
     async team_list_cmd(msg: Message) {
         const { chat: { id: group_id } } = msg;
 
-        const { members } = await this.manager.findOne(GroupTg, {
-            relations: {
-                members: true
-            },
-            where: {
-                group_id: group_id
+        try {
+            const { members } = await this.manager.findOne(GroupTg, {
+                relations: {
+                    members: true
+                },
+                where: {
+                    group_id: group_id
+                }
+            })
+    
+            let teamMembers = members.map((data) => {
+                return `name: ${data.name}\nposition: ${data.position}`;
+            });
+    
+            if(members.length > 0) {
+                this.bot.sendMessage(group_id, teamMembers.join('\n'))
             }
-        })
-
-        let teamMembers = members.map((data) => {
-            return `name: ${data.name}\nposition: ${data.position}`;
-        });
-
-        if(members.length > 0) {
-            this.bot.sendMessage(group_id, teamMembers.join('\n'))
+            else {
+                this.bot.sendMessage(group_id, 'Status: No members found!')
+            }
+        } catch (error) {
+            this.bot.sendMessage(group_id, 'Status: Error!');
+            return false;
         }
-        else {
-            this.bot.sendMessage(group_id, 'Status: No members found!')
-        }
+        
     }
 
     async report_on_cmd(msg: Message) {
@@ -194,11 +215,16 @@ export default class CommandHandler {
 
     async report_off_cmd(msg: Message) {
         const { chat: { id: group_id } } = msg;
-        const cronJob = this.jobHandler.cronJobs.get(String(group_id));
-        cronJob.stop();
+        try {
+            const cronJob = this.jobHandler.cronJobs.get(String(group_id));
+            cronJob.stop();
 
-        await this.bot.sendMessage(group_id, 'Status: Report check is off!');
-        return true;
+            await this.bot.sendMessage(group_id, 'Status: Report check is off!');
+            return true;
+        } catch (error) {
+            await this.bot.sendMessage(group_id, 'Status: Error!');
+            return false;
+        }
     }
 
     async scrum_init_cmd(msg: Message) {
