@@ -1,21 +1,29 @@
 import TelegramBot, { Message } from 'node-telegram-bot-api';
 import { DataSource, EntityManager } from "typeorm";
-import { Member, Report } from '../db/entities';
+import DataSourceConnect from '../db/datasource';
+import { Member, Report, GroupTg } from '../db/entities';
 import ValidateMessage from './validator';
-import Chronos from './chron';
+import { telegram } from '../config';
+import CronDate from './crondate';
+import JobHandler from './cron';
+
+
 
 export default class CommandHandler {
     private bot: TelegramBot;
     private validator: ValidateMessage;
-    private db: DataSource;
-    private manager: EntityManager
-    private chrons: [Chronos];
+    private dataSource: DataSource;
+    private manager: EntityManager;
+    private cronDate: CronDate;
+    private jobHandler: JobHandler;
 
-    constructor(bot: TelegramBot, db: DataSource) {
-        this.bot = bot;
+    constructor() {
+        this.bot = new TelegramBot(telegram.token);
         this.validator = new ValidateMessage();
-        this.db = db;
-        this.manager = this.db.manager;
+        this.dataSource = DataSourceConnect.getConnection();
+        this.manager = this.dataSource.manager;
+        this.cronDate = new CronDate();
+        this.jobHandler = new JobHandler();
     }   
 
     async start(msg: Message) {
@@ -23,26 +31,35 @@ export default class CommandHandler {
         await this[command](msg);
     }
 
-    async new_member(msg: Message) {
+    async new_member_event(msg: Message) {
         const { id: member_id, first_name, username } = msg.new_chat_members[0];
         const { chat: { id: group_id } } = msg;
 
+        const group = await this.manager.findOne(GroupTg, {
+            where: {
+                group_id: group_id
+            }
+        })
+
+        if(group === null) {
+            await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+            return false;
+        }
 
         const member = await this.manager.findOne(Member, {
             where: {
-                member_id: member_id,
-                group_id: group_id
+                member_id: member_id
             }
         })
 
         if(member === null) {
             let member = this.manager.create(Member, {
                 member_id: member_id,
-                group_id: group_id,
+                group_tg: group,
                 name: first_name,
                 username: username,
                 position: 'not defined',
-                created_at: Chronos.initDate()
+                created_at: this.cronDate.getKgDate()
             })
 
             await this.manager.save(member);
@@ -56,71 +73,58 @@ export default class CommandHandler {
         return true;
     }
 
-    async report_on_cmd(msg: Message) {
-        let chron = new Chronos({
-            eventHour: 19,
-            eventMinute: 2
-        }, true)
-
-        chron.startLoop(
-            async ({bot, manager, msg}) => {
-                const { chat: { id: group_id } } = msg;
-                let result = await manager.query(`
-                    select * from member
-                    left join report r on member.id = r.member_id
-                    where group_id = ${group_id} and 
-                    r.created_at < timestamp '${Chronos.getDbDate()} 11:00:00' and
-                    r.created_at > timestamp '${Chronos.getPrevDbDate()} 11:00:00';
-                `)
-
-                console.log(result);
-
-                await bot.sendMessage(group_id, 'Status: Alarm!')
-            }, 
-            {bot: this.bot, manager: this.manager, msg: msg}
-        )
+    async leave_member_event(msg: Message) {
+        return 'Not Implemented';
     }
 
     async new_member_cmd(msg: Message) {
         const { from: {id: member_id, first_name, username} } = msg;
         const { chat: { id: group_id } } = msg;
 
+        const group = await this.manager.findOne(GroupTg, {
+            where: {
+                group_id: group_id
+            }
+        })
+
+        if(group === null) {
+            await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+            return false;
+        }
 
         const member = await this.manager.findOne(Member, {
             where: {
-                member_id: member_id,
-                group_id: group_id
+                member_id: member_id
             }
         })
 
         if(member === null) {
             let member = this.manager.create(Member, {
                 member_id: member_id,
-                group_id: group_id,
+                group_tg: group,
                 name: first_name,
                 username: username,
                 position: 'not defined',
-                created_at: Chronos.initDate()
+                created_at: this.cronDate.getKgDate()
             })
 
             await this.manager.save(member);
         }
         else {
-            await this.bot.sendMessage(group_id, 'Status: Member already exist!');
+            await this.bot.sendMessage(group_id, 'Status: Member already exist!')
             return false;
         }
 
-        await this.bot.sendMessage(group_id, 'Status: New member saved!');
+        await this.bot.sendMessage(group_id, 'Status: New member saved!')
         return true;
     }
 
-    async post_report_cmd(msg: Message){
+    async post_report_cmd(msg: Message) {
         const { from: { id: member_id }, chat: { id: group_id }, text } = msg;
 
         let member = await this.manager.findOne(Member, {
             where: {
-                member_id: member_id,
-                group_id: group_id
+                member_id: member_id
             }
         });
 
@@ -131,7 +135,7 @@ export default class CommandHandler {
         
         let report = this.manager.create(Report, {
             report: text,
-            created_at: Chronos.initDate(),
+            created_at: this.cronDate.getKgDate(),
             member: member
         })
 
@@ -145,7 +149,14 @@ export default class CommandHandler {
     async team_list_cmd(msg: Message) {
         const { chat: { id: group_id } } = msg;
 
-        const members = await this.manager.find(Member)
+        const { members } = await this.manager.findOne(GroupTg, {
+            relations: {
+                members: true
+            },
+            where: {
+                group_id: group_id
+            }
+        })
 
         let teamMembers = members.map((data) => {
             return `name: ${data.name}\nposition: ${data.position}`;
@@ -159,9 +170,72 @@ export default class CommandHandler {
         }
     }
 
+    async report_on_cmd(msg: Message) {
+        const { chat: { id: group_id }, text } = msg;
+        try {
+            let time = text.replace('#reporton', '').trim();
+
+            let cronJob = this.jobHandler.cronJobs.get(String(group_id));
+
+            if(cronJob !== undefined) {
+                cronJob.start();
+            }
+            else {
+                const cronJob = this.jobHandler.reportCronJob(time, group_id);
+                this.jobHandler.cronJobs.set(String(group_id), cronJob);
+            }
+            await this.bot.sendMessage(group_id, 'Status: Report check is on!');
+            return true;
+        } catch (error) {
+            await this.bot.sendMessage(group_id, 'Status: Error!');
+            return false;
+        }
+    }
+
+    async report_off_cmd(msg: Message) {
+        const { chat: { id: group_id } } = msg;
+        const cronJob = this.jobHandler.cronJobs.get(String(group_id));
+        cronJob.stop();
+
+        await this.bot.sendMessage(group_id, 'Status: Report check is off!');
+        return true;
+    }
+
+    async scrum_init_cmd(msg: Message) {
+        const { chat: { id: group_id, title } } = msg;
+        try {
+            let member = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
+            });
+
+            if(member !== null) {
+                await this.bot.sendMessage(group_id, 'Status: ScrumBot is running!');
+                return false;
+            }
+
+            const group = this.manager.create(GroupTg, {
+                group_id: group_id,
+                name: title,
+                created_at: this.cronDate.getKgDate()
+            })
+
+            await this.manager.save(group);
+                
+            await this.bot.sendMessage(group_id, 'Status: ScrumBot is running!')
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            await this.bot.sendMessage(group_id, 'Status: Error!');
+            return false;
+        }
+    }
+
+    // MUST REFACTOR
     do_nothing() {
         console.log('did nothing')
     }
-
 
 }

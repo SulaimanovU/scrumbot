@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import { Member, Report } from "./entities";
+import { Member, Report, GroupTg } from "./entities";
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export default class DataSourceConnect {
@@ -11,12 +11,12 @@ export default class DataSourceConnect {
         username: "gyzxxvsr",
         password: "QULh8YIL6kW6EdJir2ouqk36QNE8EdKw",
         database: "gyzxxvsr",
-        entities: [Member, Report],
+        entities: [Member, Report, GroupTg],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: true
     }
     
-    static async connect() {
+    static async connect(): Promise<DataSource> {
         const AppDataSource = new DataSource(this.dataSourceOptions);
         
         if(this.initDataSource === undefined) {
@@ -32,6 +32,9 @@ export default class DataSourceConnect {
         else {
             return this.initDataSource;
         }
-        
+    }
+
+    static getConnection(): DataSource {
+        return this.initDataSource;
     }
 }

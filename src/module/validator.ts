@@ -3,16 +3,18 @@ import { Message } from 'node-telegram-bot-api';
 export default class ValidateMessage {    
 
     validate(msg: Message): string {
-        if(this.isNewMember(msg)) return 'new_member';
-        else if(this.isLeaveMember(msg)) return 'leave_member';
+        if(this.isNewMemberEvent(msg)) return 'new_member_event';
+        else if(this.isLeaveMemberEvent(msg)) return 'leave_member_event';
         else if(this.isNewMemberCmd(msg)) return 'new_member_cmd';
         else if(this.isTeamListCmd(msg)) return 'team_list_cmd';
         else if(this.isReportCmd(msg)) return 'post_report_cmd';
         else if(this.isReportOnCmd(msg)) return 'report_on_cmd';
+        else if(this.isReportOffCmd(msg)) return 'report_off_cmd';
+        else if(this.isScrumInitCmd(msg)) return 'scrum_init_cmd';
         else return 'do_nothing';
     }
 
-    isNewMember(msg: Message): boolean {
+    isNewMemberEvent(msg: Message): boolean {
         if(msg.new_chat_members !== undefined) {
             return true;
         }
@@ -21,7 +23,7 @@ export default class ValidateMessage {
         }
     }
     
-    isLeaveMember(msg: Message): boolean {
+    isLeaveMemberEvent(msg: Message): boolean {
         if(msg.left_chat_member !== undefined) {
             return true;
         }
@@ -55,7 +57,9 @@ export default class ValidateMessage {
     
     isReportCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
-            if(msg.text.toLowerCase().slice(0, 7) === '#report') {
+            let [str] = msg.text.split('\n');
+
+            if(str.trim() === '#report') {
                 return true;
             }
             else {
@@ -83,7 +87,36 @@ export default class ValidateMessage {
 
     isReportOnCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
-            if(msg.text.toLowerCase() === '#setallarm') {
+            let [str] = msg.text.split(' ');
+            if(str === '#reporton') {
+                return true;
+            }
+            else {
+                return false
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isReportOffCmd(msg: Message): boolean {
+        if(this.isTextMessage(msg)) {
+            if(msg.text.toLowerCase() === '#reportoff') {
+                return true;
+            }
+            else {
+                return false
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isScrumInitCmd(msg: Message): boolean {
+        if(this.isTextMessage(msg)) {
+            if(msg.text.toLowerCase() === '#scruminit') {
                 return true;
             }
             else {

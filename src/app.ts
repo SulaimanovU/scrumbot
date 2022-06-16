@@ -11,8 +11,8 @@ const bot = new TelegramBot(telegram.token, {
 });
 
 async function bootstrap() {
-    let dataSource = await DataSourceConnect.connect();
-    let cmdHandler = new CommandHandler(bot, dataSource);
+    await DataSourceConnect.connect();
+    let cmdHandler = new CommandHandler();
 
     bot.on('message', async (msg) => {
         cmdHandler.start(msg);
