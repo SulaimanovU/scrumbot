@@ -301,7 +301,11 @@ export default class CommandHandler {
 
             await this.manager.remove(group);
             let cronJob = this.jobHandler.cronJobs.get(String(group_id));
-            cronJob.stop();
+
+            if(cronJob) {
+                cronJob.stop();
+            }
+            
             this.jobHandler.cronJobs.delete(String(group_id));
                 
             await this.bot.sendMessage(group_id, 'Status: Srum bot disabled!')
