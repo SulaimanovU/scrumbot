@@ -6,7 +6,7 @@ export class GroupTg {
     @PrimaryGeneratedColumn()
     id: number
 
-    @Column()
+    @Column({type: 'bigint'})
     group_id: number
 
     @Column()
