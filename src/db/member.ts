@@ -21,7 +21,7 @@ export class Member {
     @Column({type: 'timestamp'})
     created_at: Date;
 
-    @ManyToOne(() => GroupTg, (group_tg) => group_tg.members)
+    @ManyToOne(() => GroupTg, (group_tg) => group_tg.members, { onDelete: 'CASCADE' })
     group_tg: GroupTg
 
     @OneToMany(() => Report, (report) => report.member, { onDelete: 'CASCADE' })

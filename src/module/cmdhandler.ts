@@ -165,6 +165,17 @@ export default class CommandHandler {
         const { chat: { id: group_id } } = msg;
 
         try {
+            const group = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
+            })
+
+            if(group === null) {
+                await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+                return false;
+            }
+
             const { members } = await this.manager.findOne(GroupTg, {
                 relations: {
                     members: true
@@ -232,6 +243,7 @@ export default class CommandHandler {
                 await this.bot.sendMessage(group_id, 'Status: There is no any Report check!');
             }
             cronJob.stop();
+            this.jobHandler.cronJobs.delete(String(group_id));
 
             await this.bot.sendMessage(group_id, 'Status: Report check is off!');
             return true;
@@ -244,18 +256,18 @@ export default class CommandHandler {
     async scrum_init_cmd(msg: Message) {
         const { chat: { id: group_id, title } } = msg;
         try {
-            let member = await this.manager.findOne(GroupTg, {
+            let group = await this.manager.findOne(GroupTg, {
                 where: {
                     group_id: group_id
                 }
             });
 
-            if(member !== null) {
+            if(group !== null) {
                 await this.bot.sendMessage(group_id, 'Status: ScrumBot is running!');
                 return false;
             }
 
-            const group = this.manager.create(GroupTg, {
+            group = this.manager.create(GroupTg, {
                 group_id: group_id,
                 name: title,
                 created_at: this.cronDate.getKgDate()
@@ -264,6 +276,35 @@ export default class CommandHandler {
             await this.manager.save(group);
                 
             await this.bot.sendMessage(group_id, 'Status: ScrumBot is running!')
+
+            return true;
+        } catch (error) {
+            console.log(error);
+            await this.bot.sendMessage(group_id, 'Status: Error!');
+            return false;
+        }
+    }
+
+    async scrum_disable_cmd(msg: Message) {
+        const { chat: { id: group_id } } = msg;
+        try {
+            let group = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
+            });
+
+            if(group === null) {
+                await this.bot.sendMessage(group_id, 'Status: Group is not registered!');
+                return false;
+            }
+
+            await this.manager.remove(group);
+            let cronJob = this.jobHandler.cronJobs.get(String(group_id));
+            cronJob.stop();
+            this.jobHandler.cronJobs.delete(String(group_id));
+                
+            await this.bot.sendMessage(group_id, 'Status: Srum bot disabled!')
 
             return true;
         } catch (error) {

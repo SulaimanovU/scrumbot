@@ -11,6 +11,7 @@ export default class ValidateMessage {
         else if(this.isReportOnCmd(msg)) return 'report_on_cmd';
         else if(this.isReportOffCmd(msg)) return 'report_off_cmd';
         else if(this.isScrumInitCmd(msg)) return 'scrum_init_cmd';
+        else if(this.isScrumDisableCmd(msg)) return 'scrum_disable_cmd';
         else return 'do_nothing';
     }
 
@@ -117,6 +118,20 @@ export default class ValidateMessage {
     isScrumInitCmd(msg: Message): boolean {
         if(this.isTextMessage(msg)) {
             if(msg.text.toLowerCase() === '#scruminit') {
+                return true;
+            }
+            else {
+                return false
+            }
+        }
+        else {
+            return false;
+        }
+    }
+
+    isScrumDisableCmd(msg: Message): boolean {
+        if(this.isTextMessage(msg)) {
+            if(msg.text.toLowerCase() === '#scrumdisable') {
                 return true;
             }
             else {
