@@ -194,17 +194,27 @@ export default class CommandHandler {
     async report_on_cmd(msg: Message) {
         const { chat: { id: group_id }, text } = msg;
         try {
-            let time = text.replace('#reporton', '').trim();
+            const group = await this.manager.findOne(GroupTg, {
+                where: {
+                    group_id: group_id
+                }
+            })
 
+            if(group === null) {
+                await this.bot.sendMessage(group_id, 'Status: Group is not registered!')
+                return false;
+            }
+
+            let time = text.replace('#reporton', '').trim();
             let cronJob = this.jobHandler.cronJobs.get(String(group_id));
 
             if(cronJob !== undefined) {
-                cronJob.start();
+                cronJob.stop();
             }
-            else {
-                const cronJob = this.jobHandler.reportCronJob(time, group_id);
-                this.jobHandler.cronJobs.set(String(group_id), cronJob);
-            }
+
+            cronJob = this.jobHandler.reportCronJob(time, group_id);
+            this.jobHandler.cronJobs.set(String(group_id), cronJob);
+
             await this.bot.sendMessage(group_id, 'Status: Report check is on!');
             return true;
         } catch (error) {
@@ -217,6 +227,10 @@ export default class CommandHandler {
         const { chat: { id: group_id } } = msg;
         try {
             const cronJob = this.jobHandler.cronJobs.get(String(group_id));
+
+            if(!cronJob) {
+                await this.bot.sendMessage(group_id, 'Status: There is no any Report check!');
+            }
             cronJob.stop();
 
             await this.bot.sendMessage(group_id, 'Status: Report check is off!');
