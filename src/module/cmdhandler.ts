@@ -69,7 +69,6 @@ export default class CommandHandler {
                 await this.manager.save(member);
             }
             else {
-                await this.bot.sendMessage(group_id, 'Status: Member already exist!')
                 return false;
             }
 
@@ -120,7 +119,6 @@ export default class CommandHandler {
                 await this.manager.save(member);
             }
             else {
-                await this.bot.sendMessage(group_id, 'Status: Member already exist!')
                 return false;
             }
 
