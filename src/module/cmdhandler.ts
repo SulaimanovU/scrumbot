@@ -32,9 +32,13 @@ export default class CommandHandler {
     }
 
     async new_member_event(msg: Message) {
-        const { id: member_id, first_name, username } = msg.new_chat_members[0];
+        const { id: member_id, first_name, username, is_bot } = msg.new_chat_members[0];
         const { chat: { id: group_id } } = msg;
         try {
+            if(is_bot) {
+                return false;
+            }
+
             const group = await this.manager.findOne(GroupTg, {
                 where: {
                     group_id: group_id
