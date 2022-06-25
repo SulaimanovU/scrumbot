@@ -144,6 +144,11 @@ export default class CommandHandler {
                 await this.bot.sendMessage(group_id, 'Status: You are not registered!');
                 return false;
             }
+
+            if(member.group_tg.group_id !== group_id) {
+                await this.bot.sendMessage(group_id, 'Status: You are not belong to this group!');
+                return false;
+            }
             
             let report = this.manager.create(Report, {
                 report: text,

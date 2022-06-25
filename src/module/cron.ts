@@ -37,12 +37,12 @@ export default class JobHandler {
                         r.created_at > timestamp '${cronDate.getPrevDateStr()} 11:00:00'
                 );
             `;
-
-            let members: [{username: string}] = await manager.query(rawSql);
+            
+            let members: [{name: string}] = await manager.query(rawSql);
             let msgString :string = '';
 
             members.forEach(member => {
-                msgString = msgString + `${member.username}\n`;
+                msgString = msgString + `${member.name}\n`;
             });
 
             msgString = msgString + 'Failed to post a report up to date!';
