@@ -35,7 +35,11 @@ export default class CommandHandler {
         const { id: member_id, first_name, username, is_bot } = msg.new_chat_members[0];
         const { chat: { id: group_id } } = msg;
         try {
-            if(is_bot) {
+            if(is_bot && first_name === 'Solid-Scrum.Bot') {
+                await this.scrum_init_cmd(msg);
+                return false;
+            }
+            else if(is_bot){
                 return false;
             }
 
