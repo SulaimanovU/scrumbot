@@ -27,8 +27,10 @@ export default class JobHandler {
 
         const job = new CronJob(time, async function() {
             let rawSql = `
-                select * from member
-                where id not in (
+                select * from member m
+                left join group_tg g on g.id = group_tg_id
+                where g.group_id = ${group_id} and 
+                m.id not in (
                     select member.id from member
                     left join report r on member.id = r.member_id
                     left join group_tg gt on member.group_tg_id = gt.id
@@ -37,7 +39,7 @@ export default class JobHandler {
                         r.created_at > timestamp '${cronDate.getPrevDateStr()} 11:00:00'
                 );
             `;
-            
+
             let members: [{name: string}] = await manager.query(rawSql);
             let msgString :string = '';
 
