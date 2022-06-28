@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, CreateDateColumn, PrimaryGeneratedColumn } from "typeorm";
-import { Member } from "./entities";
+import { TgUser } from "./entities";
 
 @Entity()
 export class GroupTg {
@@ -25,8 +25,8 @@ export class GroupTg {
     mock_interview_on: boolean
 
     @CreateDateColumn()
-    created_at: Date;
+    created_at: Date
 
-    @OneToMany(() => Member, (member) => member.group_tg, { onDelete: 'CASCADE' })
-    members: Member[]
+    @OneToMany(() => TgUser, (member) => member.group_tg, { onDelete: 'CASCADE' })
+    members: TgUser[]
 }

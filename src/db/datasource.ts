@@ -1,5 +1,5 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import { Member, Report, GroupTg } from "./entities";
+import { Member, Report, GroupTg, TgUser } from "./entities";
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 export default class DataSourceConnect {
@@ -11,7 +11,7 @@ export default class DataSourceConnect {
         username: "gyzxxvsr",
         password: "QULh8YIL6kW6EdJir2ouqk36QNE8EdKw",
         database: "gyzxxvsr",
-        entities: [Member, Report, GroupTg],
+        entities: [Member, Report, GroupTg, TgUser],
         namingStrategy: new SnakeNamingStrategy(),
         synchronize: true
     }

@@ -10,7 +10,7 @@ export class Report {
     report: string
 
     @Column({type: 'timestamp'})
-    created_at: Date;
+    created_at: Date
 
     @ManyToOne(() => Member, (member) => member.reports, { onDelete: 'CASCADE' })
     member: Member

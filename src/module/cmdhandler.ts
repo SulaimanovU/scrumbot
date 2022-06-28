@@ -1,7 +1,7 @@
 import TelegramBot, { Message } from 'node-telegram-bot-api';
 import { DataSource, EntityManager } from "typeorm";
 import DataSourceConnect from '../db/datasource';
-import { Member, Report, GroupTg } from '../db/entities';
+import { Member, Report, GroupTg, TgUser } from '../db/entities';
 import ValidateMessage from './validator';
 import { telegram } from '../config';
 import CronDate from './crondate';
@@ -54,14 +54,14 @@ export default class CommandHandler {
                 return false;
             }
 
-            const member = await this.manager.findOne(Member, {
+            const member = await this.manager.findOne(TgUser, {
                 where: {
                     member_id: member_id
                 }
             })
 
             if(member === null) {
-                let member = this.manager.create(Member, {
+                let member = this.manager.create(TgUser, {
                     member_id: member_id,
                     group_tg: group,
                     name: first_name,
@@ -104,14 +104,14 @@ export default class CommandHandler {
                 return false;
             }
 
-            const member = await this.manager.findOne(Member, {
+            const member = await this.manager.findOne(TgUser, {
                 where: {
                     member_id: member_id
                 }
             })
 
             if(member === null) {
-                let member = this.manager.create(Member, {
+                let member = this.manager.create(TgUser, {
                     member_id: member_id,
                     group_tg: group,
                     name: first_name,
@@ -138,7 +138,7 @@ export default class CommandHandler {
         const { from: { id: member_id }, chat: { id: group_id }, text } = msg;
 
         try {
-            let member = await this.manager.findOne(Member, {
+            let member = await this.manager.findOne(TgUser, {
                 where: {
                     member_id: member_id
                 }

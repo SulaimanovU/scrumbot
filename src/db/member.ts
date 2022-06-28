@@ -1,5 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from "typeorm";
-import { Report, GroupTg } from "./entities";
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, OneToMany } from "typeorm";
+import { TgUser, Report } from "./entities";
 
 @Entity()
 export class Member {
@@ -7,22 +7,19 @@ export class Member {
     id: number
 
     @Column()
-    member_id: number
-
-    @Column({default: 'albedo'})
-    name: string
-
-    @Column({default: 'rubedo'})
-    username: string
+    first_name: string
 
     @Column()
-    position: string
+    last_name: string
+
+    @Column()
+    is_active: string
 
     @Column({type: 'timestamp'})
-    created_at: Date;
+    created_at: Date
 
-    @ManyToOne(() => GroupTg, (group_tg) => group_tg.members, { onDelete: 'CASCADE' })
-    group_tg: GroupTg
+    @OneToOne(() => TgUser, (tg_user) => tg_user.member, { onDelete: 'CASCADE' })
+    tg_user: TgUser
 
     @OneToMany(() => Report, (report) => report.member, { onDelete: 'CASCADE' })
     reports: Report[]

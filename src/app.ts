@@ -12,12 +12,12 @@ const bot = new TelegramBot(telegram.token, {
 
 async function bootstrap() {
     await DataSourceConnect.connect();
-    let cmdHandler = new CommandHandler();
+    // let cmdHandler = new CommandHandler();
 
-    bot.on('message', async (msg) => {
-        console.log('msg ->', msg);
-        cmdHandler.start(msg);
-    });
+    // bot.on('message', async (msg) => {
+    //     console.log('msg ->', msg);
+    //     cmdHandler.start(msg);
+    // });
 }
 
 bootstrap();
